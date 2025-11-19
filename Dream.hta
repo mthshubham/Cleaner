@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+<HTA:APPLICATION
+  APPLICATIONNAME="DreamCleaner"
+  BORDER="thin"
+  BORDERSTYLE="normal"
+  CAPTION="yes"
+  SHOWINTASKBAR="yes"
+  SINGLEINSTANCE="yes"
+  SYSMENU="yes"
+  WINDOWSTATE="normal"
+/>
+<meta charset="UTF-8">
+<title>Dream Cleaner</title>
+<style>
+  body { font-family: Segoe UI, sans-serif; background: #f4f6f9; color: #222; margin: 20px; }
+  h1 { color: #444; text-align:center; }
+  .box { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,.1); max-width: 420px; margin: auto; }
+  .hidden { display: none; }
+  button { background: #0078d7; border: none; color: #fff; padding: 10px 18px; margin: 6px 0; border-radius: 8px; font-size: 14px; cursor: pointer; width: 100%; }
+  button:hover { background: #005a9e; }
+  input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; }
+  .log { background: #000; color: #0f0; padding: 10px; font-family: Consolas, monospace; height: 220px; overflow-y: auto; margin-top: 10px; border-radius: 6px; }
+</style>
+<script language="JScript">
+var passShubham = "Shubham";
+var passLocal   = "local";
+var programToStart = "notepad.exe";
+var currentUser  = "";
+
+function trimString(str) {
+    return str.replace(/^\s+|\s+$/g, "");  // old-school trim
+}
+
+function login() {
+    var userPass = document.getElementById("password").value;
+    userPass = trimString(userPass);
+
+    if (userPass.toLowerCase() == passShubham.toLowerCase()) {
+        currentUser = "Shubham Sharma 7260882890";
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("menuBox").style.display = "block";
+        document.getElementById("welcome").innerText = "Welcome, " + currentUser;
+    } else if (userPass.toLowerCase() == passLocal.toLowerCase()) {
+        currentUser = "Shubham Sharma";
+        document.getElementById("loginBox").style.display = "none";
+        deleteAndroid(); // auto run Android cleanup
+    } else {
+        alert("Wrong password!");
+    }
+}
+
+function runCommand(cmd) {
+    try {
+        var shell = new ActiveXObject("WScript.Shell");
+        shell.Run("cmd.exe /c " + cmd, 0, true);  // hidden, wait
+        log("✔ " + cmd);
+    } catch(e) {
+        alert("Error: " + e.message);
+    }
+}
+
+function log(msg) {
+    var box = document.getElementById("logBox");
+    box.innerHTML += msg + "<br>";
+    box.scrollTop = box.scrollHeight;
+}
+
+function deleteAndroid() {
+    log("Cleaning Android Studio directories...");
+    var dirs = [
+        "%USERPROFILE%\\.android",
+        "%USERPROFILE%\\AppData\\Local\\Android",
+        "%USERPROFILE%\\AppData\\Local\\Android\\Sdk",
+        "%USERPROFILE%\\AppData\\Local\\AndroidStudio*",
+        "%USERPROFILE%\\AppData\\Roaming\\Google\\AndroidStudio*",
+        "%USERPROFILE%\\AppData\\Local\\Google\\AndroidStudio*",
+        "%ProgramFiles%\\Android",
+        "%ProgramFiles(x86)%\\Android"
+    ];
+    for (var i=0;i<dirs.length;i++) {
+        runCommand('rd /s /q "'+dirs[i]+'"');
+    }
+    finish();
+}
+
+function deleteTemp() {
+	showUserProfile();
+    log("Cleaning Temporary files...");
+    var dirs = [
+        "C:\\Windows\\Temp",
+        "%USERPROFILE%\\AppData\\Local\\Temp",
+        "C:\\Windows\\Prefetch"
+    ];
+    for (var i=0;i<dirs.length;i++) {
+        runCommand('rd /s /q "'+dirs[i]+'"');
+    }
+    finish();
+}
+
+function deleteAnaconda() {
+    log("Deleting Anaconda...");
+    runCommand('rd /s /q "%USERPROFILE%\\Anaconda3"');
+    finish();
+}
+
+function deleteOthers() {
+    log("Deleting VS Code...");
+    runCommand('rd /s /q "%USERPROFILE%\\AppData\\Local\\Programs\\Microsoft VS Code"');
+    finish();
+}
+
+function startPrograms(){
+	log("✔ Task completed. Launching " + programToStart + "...");
+    var shell = new ActiveXObject("WScript.Shell");
+    shell.Run(programToStart, 1, false);
+}
+
+function showUserProfile() {
+    var shell = new ActiveXObject("WScript.Shell");
+    var userProfile = shell.ExpandEnvironmentStrings("%USERPROFILE%");
+    log("User Profile Path: " + userProfile);
+}
+
+function finish() {
+    log("✔ Task completed.");
+}
+</script>
+</head>
+<body>
+<div class="box" id="loginBox">
+  <h1>Dream Cleaner</h1>
+  <p>Enter Password to continue:</p>
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+</div>
+
+<div class="box hidden" id="menuBox" style="display:none;">
+  <h2 id="welcome"></h2>
+  <p>Select an option:</p>
+  <button onclick="deleteAndroid()">Clear Android Studio</button>
+  <button onclick="deleteTemp()">Clear Temporary Files</button>
+  <button onclick="deleteAnaconda()">Clear Anaconda</button>
+  <button onclick="deleteOthers()">Delete Others (VS Code)</button>
+  <button onclick="window.close()">Exit</button>
+  <div class="log" id="logBox"></div>
+</div>
+</body>
+</html>
